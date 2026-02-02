@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.env
+.env.local
+.DS_Store
+*.log
+*.db
+*.sqlite
+*.sqlite3
+*.tsbuildinfo
+pnpm-debug.log*
+package-lock.json
+yarn.lock

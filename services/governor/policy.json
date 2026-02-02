@@ -1,0 +1,10 @@
+{
+  "maxDailySpendUSDC": 50,
+  "maxSingleTransferUSDC": 25,
+  "allowlistRecipients": ["0xSAFE_ALLOWLIST_1", "0xSAFE_ALLOWLIST_2"],
+  "denylistRecipients": ["0xDENY_1", "0xDENY_2"],
+  "swapMaxSlippageBps": 50,
+  "swapMinLiquidityUSDC": 5000,
+  "deployRequiresTestsPassing": true,
+  "apiDenyPIIExfiltration": true
+}
