@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "concurrently -n governor,worker,web -c green,cyan,magenta \"pnpm --filter @agent-governor/governor dev\" \"pnpm --filter @agent-governor/worker dev\" \"pnpm --filter @agent-governor/web dev\"",
+    "dev": "pnpm --filter @agent-governor/shared build && concurrently -n governor,worker,web -c green,cyan,magenta \"pnpm --filter @agent-governor/governor dev\" \"pnpm --filter @agent-governor/worker dev\" \"pnpm --filter @agent-governor/web dev\"",
     "governor:run": "pnpm --filter @agent-governor/governor dev",
     "worker:run": "pnpm --filter @agent-governor/worker dev",
     "web:dev": "pnpm --filter @agent-governor/web dev",

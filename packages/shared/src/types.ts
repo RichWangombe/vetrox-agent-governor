@@ -1,5 +1,35 @@
 export type ActionType = "TRANSFER" | "SWAP" | "DEPLOY_SIM" | "API_CALL";
 
+export interface MarketContext {
+  volatility?: number;
+  liquidityUSDC?: number;
+  spreadBps?: number;
+  [key: string]: unknown;
+}
+
+export interface WalletContext {
+  balanceUSDC?: number;
+  recipientRiskScore?: number;
+  [key: string]: unknown;
+}
+
+export interface RepoContext {
+  testsPassing?: boolean;
+  diffStat?: {
+    filesChanged?: number;
+    insertions?: number;
+    deletions?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export interface ApiContext {
+  containsPII?: boolean;
+  sensitivity?: string;
+  [key: string]: unknown;
+}
+
 export interface ActionProposal {
   id: string;
   timestamp: string;
@@ -8,10 +38,10 @@ export interface ActionProposal {
   intent: string;
   params: Record<string, unknown>;
   context: {
-    market?: Record<string, unknown>;
-    wallet?: Record<string, unknown>;
-    repo?: Record<string, unknown>;
-    api?: Record<string, unknown>;
+    market?: MarketContext;
+    wallet?: WalletContext;
+    repo?: RepoContext;
+    api?: ApiContext;
   };
 }
 
