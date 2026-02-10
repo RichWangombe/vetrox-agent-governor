@@ -3,10 +3,17 @@ import type {
   GovernorDecision,
   GeminiRecommendation,
   Policy,
-  PolicyEvaluation
+  PolicyEvaluation,
+  PolicyHit,
+  Decision
 } from "@agent-governor/shared";
 
-const policyOverride = (evaluation: PolicyEvaluation) => {
+interface PolicyOverride {
+  decision: Decision;
+  hits: PolicyHit[];
+}
+
+const policyOverride = (evaluation: PolicyEvaluation): PolicyOverride | null => {
   const denyHits = evaluation.hits.filter((hit) => hit.severity === "DENY");
   const confirmHits = evaluation.hits.filter((hit) => hit.severity === "CONFIRM");
   if (denyHits.length > 0) return { decision: "DENY", hits: denyHits };

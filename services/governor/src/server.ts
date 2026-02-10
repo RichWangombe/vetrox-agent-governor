@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { existsSync } from "fs";
+import path from "path";
 import { z } from "zod";
 import {
   type ActionProposal,
@@ -15,10 +17,13 @@ import {
   listAudit,
   getAudit,
   getAuditSummary,
-  getDailySpendUSDC
+  getDailySpendUSDC,
+  verifyAuditChain
 } from "./auditStore.js";
+import { createAuth } from "./auth.js";
 
-dotenv.config();
+const rootEnvPath = path.resolve(process.cwd(), "..", "..", ".env");
+dotenv.config({ path: existsSync(rootEnvPath) ? rootEnvPath : undefined });
 
 const proposalSchema: z.ZodType<ActionProposal> = z.object({
   id: z.string(),
@@ -38,17 +43,29 @@ const proposalSchema: z.ZodType<ActionProposal> = z.object({
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
+const auth = createAuth(process.env.GOVERNOR_API_KEYS);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "governor" });
 });
 
-app.get("/policy", async (_req, res) => {
+app.get("/model", (_req, res) => {
+  const model = process.env.GEMINI_MODEL ?? "unknown";
+  const hasKey = Boolean(process.env.GEMINI_API_KEY);
+  const mock = process.env.GEMINI_MOCK === "true" || !hasKey;
+  res.json({ model, mock, hasKey });
+});
+
+app.get("/auth/status", (_req, res) => {
+  res.json({ enabled: auth.enabled });
+});
+
+app.get("/policy", auth.requireRole(["admin", "operator", "auditor"]), async (_req, res) => {
   const policy = await loadPolicy();
   res.json(policy);
 });
 
-app.put("/policy", async (req, res) => {
+app.put("/policy", auth.requireRole(["admin"]), async (req, res) => {
   try {
     const policy = validatePolicy(req.body);
     await savePolicy(policy);
@@ -58,13 +75,18 @@ app.put("/policy", async (req, res) => {
   }
 });
 
-app.get("/audit", (req, res) => {
+app.get("/audit", auth.requireRole(["admin", "auditor"]), (req, res) => {
   const limit = Number(req.query.limit ?? 20);
   const offset = Number(req.query.offset ?? 0);
   res.json(listAudit(limit, offset));
 });
 
-app.get("/audit/:id", (req, res) => {
+app.get("/audit/verify", auth.requireRole(["admin", "auditor"]), (req, res) => {
+  const limit = Number(req.query.limit ?? 1000);
+  res.json(verifyAuditChain(limit));
+});
+
+app.get("/audit/:id", auth.requireRole(["admin", "auditor"]), (req, res) => {
   const id = Number(req.params.id);
   const entry = getAudit(id);
   if (!entry) {
@@ -74,7 +96,7 @@ app.get("/audit/:id", (req, res) => {
   res.json(entry);
 });
 
-app.post("/proposals", async (req, res) => {
+app.post("/proposals", auth.requireRole(["admin", "operator"]), async (req, res) => {
   const start = Date.now();
   const parsed = proposalSchema.safeParse(req.body);
   if (!parsed.success) {

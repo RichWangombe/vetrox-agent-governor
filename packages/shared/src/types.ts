@@ -72,4 +72,6 @@ export interface AuditEntry {
   decisionPayload: GovernorDecision;
   latencyMs: number;
   geminiRaw?: string;
+  prevHash?: string;
+  entryHash?: string;
 }
